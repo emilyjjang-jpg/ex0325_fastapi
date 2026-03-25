@@ -1,0 +1,38 @@
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        # GitHub 저장소의 소스코드를 CI러너로 다운로드
+
+      - name: SSH 설정
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.PRIVATE_KEY }}
+
+      - name: 변경된 파일만 EC2에 동기화(rsync)
+        run: |
+          rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            --exclude '.git' \
+            --exclude '.venv' \
+            --exclude '__pycache__' \
+            --exclude '*.pyc' \
+            --exclude '*.pyo' \
+            --exclude 'db/data' \
+            ./ ubuntu@${{ secrets.HOST }}:/home/ubuntu/ex0324_fastapi/
+
+      - name: EC2 접속 및 Docker Compose 재빌드
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.HOST }} << 'EOF'
+            mkdir -p /home/ubuntu/ex0324_fastapi
+            cd /home/ubuntu/ex0324_fastapi
+            mkdir -p db/
+            docker compose down
+            docker compose up -d --build
+          EOF
