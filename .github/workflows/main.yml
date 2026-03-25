@@ -25,13 +25,13 @@ jobs:
             --exclude '*.pyc' \
             --exclude '*.pyo' \
             --exclude 'db/data' \
-            ./ ubuntu@${{ secrets.HOST }}:/home/ubuntu/ex0325_fastapi/
+            ./ ubuntu@${{ secrets.HOST }}:/home/ubuntu/ex0324_fastapi/
 
       - name: EC2 접속 및 Docker Compose 재빌드
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.HOST }} << 'EOF'
             mkdir -p /home/ubuntu/ex0324_fastapi
-            cd /home/ubuntu/ex0325_fastapi
+            cd /home/ubuntu/ex0324_fastapi
             mkdir -p db/
             docker compose down
             docker compose up -d --build
